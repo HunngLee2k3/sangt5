@@ -4,6 +4,7 @@ let productModel = require('../schemas/products')
 let categoryModel = require('../schemas/category')
 let {CreateErrorRes,
   CreateSuccessRes} = require('../utils/responseHandler')
+  let slug = require('slugify')
 
 /* GET users listing. */
 router.get('/', async function(req, res, next) {
@@ -34,7 +35,8 @@ router.post('/', async function(req, res, next) {
         name:body.name,
         price:body.price,
         quantity:body.quantity,
-        category:category._id
+        category:category._id,
+        slug: slug(body.name, { lower: true})
       })
       await newProduct.save();
       CreateSuccessRes(res,newProduct,200);

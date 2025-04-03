@@ -4,12 +4,16 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose')
+let cors = require('cors')
 let {CreateErrorRes} = require('./utils/responseHandler')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
+app.use(cors({
+  origin:'*'
+}))
 
 mongoose.connect("mongodb://localhost:27017/S5");
 mongoose.connection.on('connected',()=>{
@@ -22,12 +26,13 @@ app.set('view engine', 'pug');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser("NNPTUD"));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/roles', require('./routes/roles'));
+app.use('/menus', require('./routes/menus'));
 app.use('/auth', require('./routes/auth'));
 app.use('/products', require('./routes/products'));
 app.use('/categories', require('./routes/categories'));

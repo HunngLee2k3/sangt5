@@ -23,10 +23,17 @@ router.post('/login', async function (req, res, next) {
         let username = body.username;
         let password = body.password;
         let userID = await userController.CheckLogin(username, password);
-        CreateSuccessRes(res, jwt.sign({
+        let exp = new Date(Date.now() + 60 * 60 * 1000);
+        let token = jwt.sign({
             id: userID,
-            expire: (new Date(Date.now() + 60 * 60 * 1000)).getTime()
-        }, constants.SECRET_KEY), 200)
+            expire: (exp).getTime()
+        }, constants.SECRET_KEY)
+        res.cookie('token', token, {
+            httpOnly: true,
+            expires: exp,
+            signed: true
+        })
+        CreateSuccessRes(res, token, 200)
     } catch (error) {
         next(error)
     }
