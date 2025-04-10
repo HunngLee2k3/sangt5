@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  .container.mt-5
+    h1.text-center Lỗi
+    if message
+      p.text-center.text-danger= message
+    else
+      p.text-center.text-danger Đã xảy ra lỗi không xác định.
+    if error && error.status
+      p.text-center Mã lỗi: #{error.status}
+    if error && error.stack
+      pre.text-center= error.stack
+    a.btn.btn-primary.mt-3.d-block.mx-auto(href="/") Quay lại trang chủ

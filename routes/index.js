@@ -1,40 +1,22 @@
+// routes/index.js
 var express = require('express');
 var router = express.Router();
-var categorySchema = require('../schemas/category')
-var productSchema = require('../schemas/products')
+let productModel = require('../schemas/products');
+let categoryModel = require('../schemas/category'); // Import category model
 
-/* GET home page. */
-router.get('/', function (req, res, next) {
-  res.render('index', { title: 'Express' });
+/* GET home page */
+router.get('/', async function(req, res, next) {
+    try {
+        let products = await productModel.find({ isFeatured: true, isDeleted: false }).populate('category');
+        let categories = await categoryModel.find({ isDeleted: false }); // Lấy danh sách danh mục
+        res.render('index', { 
+            title: 'Flower HubHub', 
+            products, 
+            categories // Truyền categories vào template
+        });
+    } catch (error) {
+        next(error);
+    }
 });
-router.get("/slug/:category", async function (req, res, next) {
-  let categorySlug = req.params.category;
-  //let productSlug = req.params.product;
-  let category = await categorySchema.findOne({
-    slug: categorySlug
-  })
-  if (category) {
-    let products = await productSchema.find({
-      category: category._id
-    })
-    res.status(200).send(products)
-  }
-
-})
-router.get("/slug/:category/:product", async function (req, res, next) {
-  let categorySlug = req.params.category;
-  let productSlug = req.params.product;
-  console.log(productSlug);
-  let category = await categorySchema.findOne({
-    slug: categorySlug
-  })
-  if (category) {
-    let products = await productSchema.find({
-      category: category._id,
-      slug:productSlug
-    })
-    res.status(200).send(products)
-  }
-})
 
 module.exports = router;

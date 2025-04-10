@@ -1,0 +1,28 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center= title
+    if orders && orders.length > 0
+      table.table.table-bordered
+        thead
+          tr
+            th Mã đơn hàng
+            th Ngày đặt
+            th Tổng tiền
+            th Địa chỉ giao hàng
+            th Trạng thái
+            th Chi tiết
+        tbody
+          each order in orders
+            tr
+              td= order._id
+              td= order.createdAt.toLocaleDateString('vi-VN')
+              td= order.total + ' VND'
+              td= order.shippingAddress
+              td= order.status
+              td
+                a.btn.btn-primary(href=`/orders/${order._id}`) Xem chi tiết
+    else
+      p.text-center Bạn chưa có đơn hàng nào.
+      a.btn.btn-primary.mt-3.d-block.mx-auto(href="/products") Tiếp tục mua sắm

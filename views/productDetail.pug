@@ -1,0 +1,60 @@
+extends layout
+
+block content
+  .row
+    .col-md-6
+      // Carousel cho nhiều ảnh
+      .carousel.slide(data-bs-ride="carousel" id="productCarousel")
+        .carousel-inner
+          if product.images && product.images.length > 0
+            each image, index in product.images
+              .carousel-item(class=index === 0 ? 'active' : '')
+                img.d-block.w-100(src=image alt=product.name style="height: 400px; object-fit: cover;")
+          else
+            .carousel-item.active
+              img.d-block.w-100(src="https://via.placeholder.com/600x400?text=No+Image" alt="No Image" style="height: 400px; object-fit: cover;")
+        button.carousel-control-prev(type="button" data-bs-target="#productCarousel" data-bs-slide="prev")
+          span.carousel-control-prev-icon(aria-hidden="true")
+          span.visually-hidden Previous
+        button.carousel-control-next(type="button" data-bs-target="#productCarousel" data-bs-slide="next")
+          span.carousel-control-next-icon(aria-hidden="true")
+          span.visually-hidden Next
+
+    .col-md-6
+      h1= product.name
+      p
+        strong Price: 
+        span #{product.price} VND
+      p
+        strong Quantity in Stock: 
+        span= product.quantity
+      p
+        strong Category: 
+        span= product.category ? product.category.name : 'N/A'
+      p
+        strong Description: 
+        span= product.description || 'No description'
+      button.btn.btn-success.mt-3(onclick=`addToCart('${product._id}')`) Add to Cart
+
+  script.
+    async function addToCart(productId) {
+      try {
+        const response = await fetch('/cart/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ productId, quantity: 1 })
+        });
+        if (response.ok) {
+          alert('Product added to cart!');
+          window.location.href = '/cart/view';
+        } else {
+          alert('Failed to add product to cart');
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Error adding product to cart');
+      }
+    }

@@ -1,0 +1,68 @@
+extends layout
+
+block content
+  h2.text-center.mt-5 Thêm sản phẩm
+  if error
+    p.alert.alert-danger= error
+  form(action="/products/add" method="POST" enctype="multipart/form-data" id="productForm")
+    .mb-3
+      label.form-label(for="name") Tên sản phẩm
+      input.form-control(type="text" id="name" name="name" required)
+    .mb-3
+      label.form-label(for="price") Giá
+      input.form-control(type="number" id="price" name="price" required min="0")
+    .mb-3
+      label.form-label(for="quantity") Số lượng
+      input.form-control(type="number" id="quantity" name="quantity" required min="0")
+    .mb-3
+      label.form-label(for="description") Mô tả
+      textarea.form-control(id="description" name="description" rows="3")
+    .mb-3
+      label.form-label(for="images") Hình ảnh
+      input.form-control(type="file" id="images" name="images" multiple accept="image/*")
+      #imageUrls
+    .mb-3.form-check
+      input.form-check-input(type="checkbox" id="isFeatured" name="isFeatured")
+      label.form-check-label(for="isFeatured") Sản phẩm nổi bật
+    button.btn.btn-primary(type="submit") Thêm sản phẩm
+
+  script.
+    document.getElementById('productForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      const imageFiles = document.getElementById('images').files;
+
+      // Upload ảnh trước
+      const imageUrls = [];
+      for (let i = 0; i < imageFiles.length; i++) {
+        const imageFormData = new FormData();
+        imageFormData.append('avatar', imageFiles[i]);
+        try {
+          const response = await fetch('/upload_avatar', {
+            method: 'POST',
+            body: imageFormData
+          });
+          const result = await response.json();
+          if (result.success) {
+            imageUrls.push(result.data.url);
+          } else {
+            alert('Lỗi khi upload ảnh: ' + result.message);
+            return;
+          }
+        } catch (error) {
+          alert('Lỗi khi upload ảnh: ' + error.message);
+          return;
+        }
+      }
+
+      // Thêm URL ảnh vào form
+      const imageUrlsInput = document.createElement('input');
+      imageUrlsInput.type = 'hidden';
+      imageUrlsInput.name = 'imageUrls';
+      imageUrlsInput.value = JSON.stringify(imageUrls);
+      form.appendChild(imageUrlsInput);
+
+      // Gửi form
+      form.submit();
+    });

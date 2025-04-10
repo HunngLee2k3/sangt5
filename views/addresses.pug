@@ -1,0 +1,48 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center= title
+    if error
+      .alert.alert-danger= error
+
+    // Form thêm địa chỉ
+    h4.mt-4 Thêm địa chỉ mới
+    form(action="/addresses/add", method="POST")
+      .mb-3
+        label.form-label(for="address") Địa chỉ
+        textarea#address.form-control(name="address", rows="3", required)
+      button.btn.btn-primary(type="submit") Thêm địa chỉ
+
+    // Danh sách địa chỉ
+    h4.mt-5 Địa chỉ của bạn
+    if addresses && addresses.length > 0
+      each addr in addresses
+        .card.mb-3
+          .card-body
+            p= addr.address
+            p
+              strong Mặc định: 
+              | #{addr.isDefault ? 'Có' : 'Không'}
+            p
+              strong Ngày tạo: 
+              | #{addr.createdAt.toLocaleString()}
+            .d-flex.justify-content-between
+              // Form cập nhật địa chỉ
+              form(action=`/addresses/update/${addr._id}`, method="POST")
+                .mb-3
+                  label.form-label(for=`address-${addr._id}`) Cập nhật địa chỉ
+                  textarea.form-control(name="address", id=`address-${addr._id}`, rows="2", required)= addr.address
+                .mb-3.form-check
+                  input.form-check-input(type="checkbox", name="isDefault", id=`isDefault-${addr._id}`, checked=addr.isDefault)
+                  label.form-check-label(for=`isDefault-${addr._id}`) Đặt làm mặc định
+                button.btn.btn-warning(type="submit") Cập nhật
+              // Form xóa địa chỉ
+              form(action=`/addresses/delete/${addr._id}`, method="POST")
+                button.btn.btn-danger(type="submit", onclick="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này không?')") Xóa
+    else
+      p.text-center Bạn chưa có địa chỉ nào.
+      a.btn.btn-primary.mt-3(href="/products") Tiếp tục mua sắm
+
+    // Nút quay lại
+    a.btn.btn-secondary.mt-3(href="/cart/view") Quay lại giỏ hàng

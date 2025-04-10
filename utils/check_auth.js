@@ -1,50 +1,51 @@
-//menu dong
-//slug
+// utils/check_auth.js
+let jwt = require('jsonwebtoken');
+let constants = require('./constants');
+let userModel = require('../schemas/users');
 
-let jwt = require('jsonwebtoken')
-let constants = require('../utils/constants')
-let userController = require('../controllers/users');
-const e = require('express');
-module.exports = {
-    check_authentication: async function (req, res, next) {
-        let token;
-        if (!req.headers || !req.headers.authorization) {
-            if (req.signedCookies.token) {
-                token = req.signedCookies.token
-            }
-        } else {
-            let authorization = req.headers.authorization;
-            if (authorization.startsWith("Bearer")) {
-                token = authorization.split(" ")[1];
-            }
-        }
+let check_authentication = async (req, res, next) => {
+    try {
+        let token = req.headers.authorization || req.signedCookies.token;
+        console.log('Token in check_authentication:', token); // Kiểm tra token
         if (!token) {
-            next(new Error("ban chua dang nhap"))
-        } else {
-            let result = jwt.verify(token, constants.SECRET_KEY);
-            if (result.expire > Date.now()) {
-                let user = await userController.GetUserByID(result.id);
-                req.user = user;
-                next();
-            } else {
-                next(new Error("ban chua dang nhap"))
-            }
+            console.log('No token found');
+            req.isAuthenticated = false;
+            res.locals.isAuthenticated = false;
+            return next();
         }
-
-    },
-    check_authorization: function (roles) {
-        return async function (req, res, next) {
-            try {
-                console.log(object);
-                let roleOfUser = req.user.role.name;
-                if (roles.includes(roleOfUser)) {
-                    next();
-                } else {
-                    throw new Error("ban khong co quyen")
-                }
-            } catch (error) {
-                next(error)
-            }
+        if (token.startsWith('Bearer ')) {
+            token = token.slice(7, token.length);
         }
+        let decoded = jwt.verify(token, constants.SECRET_KEY);
+        console.log('Decoded token:', decoded); // Kiểm tra token đã giải mã
+        let user = await userModel.findById(decoded.id);
+        if (!user) {
+            throw new Error("Người dùng không tồn tại");
+        }
+        req.user = user;
+        req.isAuthenticated = true;
+        res.locals.isAuthenticated = true;
+        res.locals.user = user;
+        console.log('User authenticated:', user.username); // Kiểm tra user
+        next();
+    } catch (error) {
+        console.log('Error in check_authentication:', error.message);
+        req.isAuthenticated = false;
+        res.locals.isAuthenticated = false;
+        next();
     }
-}
+};
+
+let check_authorization = (role) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            throw new Error("Bạn cần đăng nhập");
+        }
+        if (req.user.role !== role) {
+            throw new Error("Bạn không có quyền truy cập");
+        }
+        next();
+    };
+};
+
+module.exports = { check_authentication, check_authorization };

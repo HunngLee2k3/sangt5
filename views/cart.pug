@@ -1,0 +1,52 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center= title
+    #cart-message.alert.alert-success.d-none(role="alert") Đã cập nhật giỏ hàng!
+    if cart && cart.items && cart.items.length > 0
+      table.table.table-bordered
+        thead
+          tr
+            th Sản phẩm
+            th Giá
+            th Số lượng
+            th Tổng cộng
+            th Hành động
+        tbody
+          each item in cart.items
+            tr
+              td
+                if item.productId
+                  a(href=`/products/${item.productId.slug}`)= item.productId.name
+                else
+                  | Sản phẩm không tồn tại
+              td
+                if item.productId && item.productId.price
+                  | #{item.productId.price} VND
+                else
+                  | Không có giá
+              td
+                if item.productId
+                  input.form-control(type="number", min="1", value=item.quantity, data-product-id=item.productId._id, onchange="updateQuantity(this)")
+                else
+                  | N/A
+              td
+                if item.productId && item.productId.price
+                  | #{item.productId.price * item.quantity} VND
+                else
+                  | Không có giá
+              td
+                if item.productId
+                  button.btn.btn-danger(onclick=`removeFromCart('${item.productId._id}')`) Xóa
+                else
+                  button.btn.btn-danger(onclick=`removeFromCartByIndex(${cart.items.indexOf(item)})`) Xóa
+      .text-right
+        h4
+          strong Tổng cộng: 
+          span#cart-total
+            | #{cart.items.reduce((total, item) => total + (item.productId && item.productId.price ? item.productId.price * item.quantity : 0), 0)} VND
+        a.btn.btn-primary.mt-3(href="/cart/checkout") Tiến hành thanh toán
+    else
+      p.text-center Giỏ hàng của bạn đang trống.
+      a.btn.btn-primary.mt-3(href="/products") Tiếp tục mua sắm

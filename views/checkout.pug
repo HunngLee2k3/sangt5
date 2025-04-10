@@ -1,0 +1,61 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center= title
+    if error
+      .alert.alert-danger= error
+
+    // Hiển thị giỏ hàng
+    if cart && cart.items && cart.items.length > 0
+      table.table.table-bordered
+        thead
+          tr
+            th Sản phẩm
+            th Giá
+            th Số lượng
+            th Tổng cộng
+        tbody
+          each item in cart.items
+            tr
+              td
+                if item.productId
+                  a(href=`/products/${item.productId.slug}`)= item.productId.name
+                else
+                  | Sản phẩm không tồn tại
+              td
+                if item.productId && item.productId.price
+                  | #{item.productId.price} VND
+                else
+                  | Không có giá
+              td= item.quantity
+              td
+                if item.productId && item.productId.price
+                  | #{item.productId.price * item.quantity} VND
+                else
+                  | Không có giá
+      .text-right
+        h4
+          strong Tổng cộng: 
+          | #{total} VND
+    else
+      p.text-center Giỏ hàng của bạn đang trống.
+      a.btn.btn-primary.mt-3(href="/products") Tiếp tục mua sắm
+
+    // Form chọn địa chỉ (luôn hiển thị)
+    form(action="/cart/checkout", method="POST")
+      .mb-3.mt-4
+        label.form-label(for="addressId") Chọn địa chỉ giao hàng
+        if addresses && addresses.length > 0
+          select#addressId.form-select(name="addressId", required)
+            option(value="") -- Chọn một địa chỉ --
+            each addr in addresses
+              option(value=addr._id, selected=addr.isDefault)= addr.address
+        else
+          p.text-center Bạn chưa có địa chỉ nào được lưu.
+          a.btn.btn-primary(href="/addresses") Thêm địa chỉ
+      if addresses && addresses.length > 0 && cart && cart.items && cart.items.length > 0
+        button.btn.btn-primary(type="submit") Đặt hàng
+      else
+        button.btn.btn-primary(type="submit", disabled) Đặt hàng
+    a.btn.btn-secondary.mt-3(href="/cart/view") Quay lại giỏ hàng

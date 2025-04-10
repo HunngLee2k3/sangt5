@@ -1,0 +1,22 @@
+doctype html
+extends layout
+
+block content
+    h1 Category List
+
+    // Danh sách danh mục
+    table(border="1")
+      thead
+        tr
+          th Name
+          th Description
+          th Slug
+      tbody
+        each category in categories
+          tr
+            td= category.name
+            td= category.description
+            td= category.slug
+
+    // Nút thêm danh mục
+    a(href="/categories/add") Add New Category

@@ -1,0 +1,48 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center= title
+    if order
+      .card
+        .card-body
+          h5.card-title Mã đơn hàng: #{order._id}
+          p.card-text
+            strong Ngày đặt: 
+            | #{order.createdAt.toLocaleDateString('vi-VN')}
+          p.card-text
+            strong Tổng tiền: 
+            | #{order.total} VND
+          p.card-text
+            strong Địa chỉ giao hàng: 
+            | #{order.shippingAddress}
+          p.card-text
+            strong Trạng thái: 
+            | #{order.status}
+          h5 Sản phẩm trong đơn hàng
+          table.table.table-bordered
+            thead
+              tr
+                th Sản phẩm
+                th Giá
+                th Số lượng
+                th Tổng cộng
+            tbody
+              each item in order.items
+                tr
+                  td
+                    if item.productId
+                      | #{item.productId.name}
+                    else
+                      | Sản phẩm không tồn tại
+                  td
+                    if item.productId
+                      | #{item.productId.price} VND
+                    else
+                      | Không có giá
+                  td= item.quantity
+                  td= item.price * item.quantity + ' VND'
+      a.btn.btn-primary.mt-3(href="/orders") Quay lại danh sách đơn hàng
+    else
+      p.text-center Đơn hàng không tồn tại.
+      a.btn.btn-primary.mt-3.d-block.mx-auto(href="/orders") Quay lại danh sách đơn hàng

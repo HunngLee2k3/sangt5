@@ -1,0 +1,94 @@
+extends layout
+
+block content
+  h2.mt-5 Danh mục
+  .row
+    if categories && categories.length > 0
+      each category in categories
+        .col-md-4.mb-4
+          .card
+            .card-body
+              h5.card-title= category.name
+              p.card-text= category.description || 'Không có mô tả'
+    else
+      p.text-center Không có danh mục nào.
+
+  h2.mt-5 Sản phẩm nổi bật
+  #cart-message.alert.alert-success.d-none(role="alert") Đã thêm sản phẩm vào giỏ hàng!
+  .row
+    if products && products.length > 0
+      each product in products
+        .col-md-4.mb-4
+          .card
+            if product.images && product.images.length > 0
+              img.card-img-top(src=product.images[0], alt=product.name)
+            else
+              img.card-img-top(src="https://via.placeholder.com/300x200?text=No+Image", alt="Không có hình ảnh")
+            .card-body
+              h5.card-title= product.name
+              p.card-text
+                strong Giá: 
+                if product.price
+                  | #{product.price} VND
+                else
+                  | Không có giá
+              p.card-text
+                strong Số lượng trong kho: 
+                if product.quantity !== undefined
+                  | #{product.quantity}
+                else
+                  | Không có số lượng
+              p.card-text
+                strong Danh mục: 
+                if product.category && product.category.name
+                  | #{product.category.name}
+                else
+                  | Không có danh mục
+              p.card-text
+                strong Mô tả: 
+                if product.description
+                  | #{product.description}
+                else
+                  | Không có mô tả
+              .d-flex.justify-content-between.mt-3
+                a.btn.btn-primary(href=`/products/${product.slug}`) Xem chi tiết
+                if isAuthenticated
+                  button.btn.btn-success(onclick=`addToCart('${product._id}')`) Thêm vào giỏ
+                else
+                  a.btn.btn-success(href="/auth/login") Đăng nhập để thêm vào giỏ
+    else
+      p.text-center Không có sản phẩm nổi bật.
+
+  script.
+    async function addToCart(productId) {
+      try {
+        const response = await fetch('/cart/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ productId, quantity: 1 })
+        });
+        if (response.ok) {
+          const message = document.getElementById('cart-message');
+          message.classList.remove('d-none');
+          setTimeout(() => {
+            message.classList.add('d-none');
+          }, 3000);
+          const countResponse = await fetch('/cart/count');
+          const countData = await countResponse.json();
+          if (countData.success) {
+            const cartCount = document.getElementById('cart-count');
+            if (cartCount) {
+              cartCount.textContent = countData.count;
+            }
+          }
+        } else {
+          const errorData = await response.json();
+          alert('Không thể thêm sản phẩm vào giỏ hàng: ' + (errorData.message || 'Lỗi không xác định'));
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Lỗi khi thêm sản phẩm vào giỏ hàng: ' + error.message);
+      }
+    }

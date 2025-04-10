@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  h1 Add New Category
+  form(action="/categories" method="POST")
+    div
+      label(for="name") Name:
+      input(type="text" name="name" required)
+    div
+      label(for="description") Description:
+      textarea(name="description")
+    div
+      button(type="submit") Add Category

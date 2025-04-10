@@ -1,21 +1,26 @@
+// schemas/categories.js
 let mongoose = require('mongoose');
+
 let categorySchema = mongoose.Schema({
-    name:{
-        type:String,
-        required:true,
-        unique:true
+    name: {
+        type: String,
+        required: true
     },
-    description:{
-        type:String,
-        default:"",
+    description: {
+        type: String
     },
-    isDeleted:{
-        type:Boolean,
-        default:false
+    isDeleted: {
+        type: Boolean,
+        default: false
     },
-    slug:String
-},{
-    timestamps:true
-})
-module.exports = mongoose.model('category',categorySchema)
-// products
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+module.exports = mongoose.model('Category', categorySchema); // Tên model là 'Category'
