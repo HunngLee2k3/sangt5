@@ -11,6 +11,16 @@ let userSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    email: { // Thêm trường email (vì route signup có sử dụng)
+        type: String,
+        required: true,
+        unique: true
+    },
+    role: { // Thêm trường role
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -21,4 +31,4 @@ let userSchema = mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('User', userSchema); // Tên model là 'User'
+module.exports = mongoose.model('User', userSchema);

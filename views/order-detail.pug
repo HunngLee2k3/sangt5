@@ -2,9 +2,9 @@ extends layout
 
 block content
   .container.mt-5
-    h2.text-center= title
+    h2.text-center.mb-4.text-primary= title
     if order
-      .card
+      .card.shadow-sm.border-0
         .card-body
           h5.card-title Mã đơn hàng: #{order._id}
           p.card-text
@@ -18,31 +18,45 @@ block content
             | #{order.shippingAddress}
           p.card-text
             strong Trạng thái: 
-            | #{order.status}
-          h5 Sản phẩm trong đơn hàng
-          table.table.table-bordered
-            thead
-              tr
-                th Sản phẩm
-                th Giá
-                th Số lượng
-                th Tổng cộng
-            tbody
-              each item in order.items
+            span.badge(class=`bg-${order.status === 'pending' ? 'warning' : order.status === 'completed' ? 'success' : 'danger'}`)= order.status
+          h5.mt-4 Sản phẩm trong đơn hàng
+          .table-responsive
+            table.table.table-bordered
+              thead
                 tr
-                  td
-                    if item.productId
-                      | #{item.productId.name}
-                    else
-                      | Sản phẩm không tồn tại
-                  td
-                    if item.productId
-                      | #{item.productId.price} VND
-                    else
-                      | Không có giá
-                  td= item.quantity
-                  td= item.price * item.quantity + ' VND'
-      a.btn.btn-primary.mt-3(href="/orders") Quay lại danh sách đơn hàng
+                  th Sản phẩm
+                  th Giá
+                  th Số lượng
+                  th Tổng cộng
+              tbody
+                each item in order.items
+                  tr
+                    td
+                      if item.productId
+                        | #{item.productId.name}
+                      else
+                        span.text-muted Sản phẩm không tồn tại
+                    td
+                      if item.productId
+                        | #{item.productId.price} VND
+                      else
+                        span.text-muted Không có giá
+                    td= item.quantity
+                    td= item.price * item.quantity + ' VND'
+      a.btn.btn-primary.mt-3(href="/orders" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Quay lại danh sách đơn hàng
+        |  
+        i.bi.bi-arrow-left-circle-fill
     else
-      p.text-center Đơn hàng không tồn tại.
-      a.btn.btn-primary.mt-3.d-block.mx-auto(href="/orders") Quay lại danh sách đơn hàng
+      .alert.alert-info.text-center Đơn hàng không tồn tại.
+      a.btn.btn-primary.mt-3(href="/orders" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Quay lại danh sách đơn hàng
+
+  style.
+    .btn-primary:hover {
+      background-color: #ff6384 !important;
+      border-color: #ff6384 !important;
+      transform: scale(1.05);
+    }
+    .card {
+      border-radius: 15px;
+      background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    }

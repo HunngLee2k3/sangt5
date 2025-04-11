@@ -6,7 +6,7 @@ let userModel = require('../schemas/users');
 let check_authentication = async (req, res, next) => {
     try {
         let token = req.headers.authorization || req.signedCookies.token;
-        console.log('Token in check_authentication:', token); // Kiểm tra token
+        console.log('Token in check_authentication:', token);
         if (!token) {
             console.log('No token found');
             req.isAuthenticated = false;
@@ -17,7 +17,7 @@ let check_authentication = async (req, res, next) => {
             token = token.slice(7, token.length);
         }
         let decoded = jwt.verify(token, constants.SECRET_KEY);
-        console.log('Decoded token:', decoded); // Kiểm tra token đã giải mã
+        console.log('Decoded token:', decoded);
         let user = await userModel.findById(decoded.id);
         if (!user) {
             throw new Error("Người dùng không tồn tại");
@@ -26,7 +26,7 @@ let check_authentication = async (req, res, next) => {
         req.isAuthenticated = true;
         res.locals.isAuthenticated = true;
         res.locals.user = user;
-        console.log('User authenticated:', user.username); // Kiểm tra user
+        console.log('User authenticated:', user.username);
         next();
     } catch (error) {
         console.log('Error in check_authentication:', error.message);
@@ -38,13 +38,17 @@ let check_authentication = async (req, res, next) => {
 
 let check_authorization = (role) => {
     return (req, res, next) => {
-        if (!req.user) {
-            throw new Error("Bạn cần đăng nhập");
+        try {
+            if (!req.user) {
+                return res.redirect('/auth/login'); // Chuyển hướng nếu chưa đăng nhập
+            }
+            if (req.user.role !== role) {
+                return res.render('error', { title: 'Lỗi', message: 'Bạn không có quyền truy cập' });
+            }
+            next();
+        } catch (error) {
+            res.render('error', { title: 'Lỗi', message: error.message });
         }
-        if (req.user.role !== role) {
-            throw new Error("Bạn không có quyền truy cập");
-        }
-        next();
     };
 };
 

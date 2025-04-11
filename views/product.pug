@@ -2,47 +2,56 @@ extends layout
 
 block content
   .container.mt-5
-    h2.text-center= title
-    #cart-message.alert.alert-success.d-none(role="alert") Đã thêm sản phẩm vào giỏ hàng!
+    h2.text-center.mb-4.text-primary= title
+    // Thêm phần tử cart-message
+    #cart-message.alert.alert-success.alert-dismissible.fade.show.d-none(role="alert")
+      | Đã thêm sản phẩm vào giỏ hàng!
+      button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
     .row
       .col-md-6
         if product && product.images && product.images.length > 0
-          img.img-fluid(src=product.images[0], alt=product.name)
+          .carousel.slide(data-bs-ride="carousel" id="productCarousel")
+            .carousel-inner
+              each image, index in product.images
+                .carousel-item(class=index === 0 ? 'active' : '')
+                  img.d-block.w-100(src=image alt=product.name style="max-height: 400px; object-fit: contain; border-radius: 10px; background-color: #f8f9fa;")
+            button.carousel-control-prev(type="button" data-bs-target="#productCarousel" data-bs-slide="prev")
+              span.carousel-control-prev-icon(aria-hidden="true")
+              span.visually-hidden Previous
+            button.carousel-control-next(type="button" data-bs-target="#productCarousel" data-bs-slide="next")
+              span.carousel-control-next-icon(aria-hidden="true")
+              span.visually-hidden Next
         else
-          img.img-fluid(src="https://via.placeholder.com/300x200?text=No+Image", alt="Không có hình ảnh")
+          img.img-fluid(src="https://via.placeholder.com/400x400?text=No+Image" alt="Không có hình ảnh" style="max-height: 400px; object-fit: contain; border-radius: 10px; background-color: #f8f9fa;")
       .col-md-6
         if product
-          h3= product.name
+          h3.text-primary= product.name
           p
             strong Giá: 
-            if product.price
-              | #{product.price} VND
-            else
-              | Không có giá
+            span.text-danger.fw-bold #{product.price} VND
           p
             strong Số lượng trong kho: 
-            if product.quantity !== undefined
-              | #{product.quantity}
-            else
-              | Không có số lượng
+            span= product.quantity !== undefined ? product.quantity : 'Hết hàng'
           p
             strong Danh mục: 
-            if product.category && product.category.name
-              | #{product.category.name}
-            else
-              | Không có danh mục
+            span.text-muted= product.category && product.category.name ? product.category.name : 'Không có danh mục'
           p
             strong Mô tả: 
-            if product.description
-              | #{product.description}
+            span.text-muted= product.description || 'Không có mô tả'
+          p
+            strong Sản phẩm thực nhận có thể khác với hình đại diện trên website (đặc điểm thủ công và tính chất tự nhiên của hàng nông nghiệp)
+          .d-flex.gap-3.mt-4
+            if isAuthenticated
+              button.btn.btn-success(onclick=`addToCart('${product._id}')` style="background-color: #28a745; border-color: #28a745; transition: all 0.3s ease;") 
+                i.fas.fa-cart-plus.me-2
+                | Thêm vào giỏ
             else
-              | Không có mô tả
-          if isAuthenticated
-            button.btn.btn-success.mt-3(onclick=`addToCart('${product._id}')`) Thêm vào giỏ
-          else
-            a.btn.btn-success.mt-3(href="/auth/login") Đăng nhập để thêm vào giỏ
+              a.btn.btn-success(href="/auth/login" style="background-color: #28a745; border-color: #28a745; transition: all 0.3s ease;") Đăng nhập để thêm vào giỏ
+            a.btn.btn-outline-primary(href="/products") Quay lại
         else
-          p.text-center Sản phẩm không tồn tại
+          .text-center.text-muted
+            i.fas.fa-box-open.fa-3x.mb-3
+            p Sản phẩm không tồn tại
 
   script.
     async function addToCart(productId) {
@@ -56,10 +65,12 @@ block content
         });
         if (response.ok) {
           const message = document.getElementById('cart-message');
-          message.classList.remove('d-none');
-          setTimeout(() => {
-            message.classList.add('d-none');
-          }, 3000);
+          if (message) { // Kiểm tra xem message có tồn tại không
+            message.classList.remove('d-none');
+            setTimeout(() => {
+              message.classList.add('d-none');
+            }, 3000);
+          }
           const countResponse = await fetch('/cart/count');
           const countData = await countResponse.json();
           if (countData.success) {

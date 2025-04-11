@@ -1,68 +1,65 @@
 extends layout
 
 block content
-  h2.text-center.mt-5 Thêm sản phẩm
-  if error
-    p.alert.alert-danger= error
-  form(action="/products/add" method="POST" enctype="multipart/form-data" id="productForm")
-    .mb-3
-      label.form-label(for="name") Tên sản phẩm
-      input.form-control(type="text" id="name" name="name" required)
-    .mb-3
-      label.form-label(for="price") Giá
-      input.form-control(type="number" id="price" name="price" required min="0")
-    .mb-3
-      label.form-label(for="quantity") Số lượng
-      input.form-control(type="number" id="quantity" name="quantity" required min="0")
-    .mb-3
-      label.form-label(for="description") Mô tả
-      textarea.form-control(id="description" name="description" rows="3")
-    .mb-3
-      label.form-label(for="images") Hình ảnh
-      input.form-control(type="file" id="images" name="images" multiple accept="image/*")
-      #imageUrls
-    .mb-3.form-check
-      input.form-check-input(type="checkbox" id="isFeatured" name="isFeatured")
-      label.form-check-label(for="isFeatured") Sản phẩm nổi bật
-    button.btn.btn-primary(type="submit") Thêm sản phẩm
-
-  script.
-    document.getElementById('productForm').addEventListener('submit', async function(event) {
-      event.preventDefault();
-      const form = event.target;
-      const formData = new FormData(form);
-      const imageFiles = document.getElementById('images').files;
-
-      // Upload ảnh trước
-      const imageUrls = [];
-      for (let i = 0; i < imageFiles.length; i++) {
-        const imageFormData = new FormData();
-        imageFormData.append('avatar', imageFiles[i]);
-        try {
-          const response = await fetch('/upload_avatar', {
-            method: 'POST',
-            body: imageFormData
-          });
-          const result = await response.json();
-          if (result.success) {
-            imageUrls.push(result.data.url);
-          } else {
-            alert('Lỗi khi upload ảnh: ' + result.message);
-            return;
-          }
-        } catch (error) {
-          alert('Lỗi khi upload ảnh: ' + error.message);
-          return;
-        }
-      }
-
-      // Thêm URL ảnh vào form
-      const imageUrlsInput = document.createElement('input');
-      imageUrlsInput.type = 'hidden';
-      imageUrlsInput.name = 'imageUrls';
-      imageUrlsInput.value = JSON.stringify(imageUrls);
-      form.appendChild(imageUrlsInput);
-
-      // Gửi form
-      form.submit();
-    });
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-8
+        .card.shadow-sm.border-0
+          .card-body
+            h2.text-center.mb-4.text-primary= title
+            if error
+              .alert.alert-danger.alert-dismissible.fade.show(role="alert")
+                | #{error}
+                button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
+            form(action= product ? `/admin/products/edit/${product._id}` : '/admin/products/add' method="POST" enctype="multipart/form-data")
+              .row
+                .col-md-6.mb-3
+                  label.form-label.fw-bold.text-muted(for="name") Tên sản phẩm
+                  input.form-control(type="text" id="name" name="name" value= product ? product.name : '' required placeholder="Nhập tên sản phẩm")
+                .col-md-6.mb-3
+                  label.form-label.fw-bold.text-muted(for="price") Giá (VND)
+                  input.form-control(type="number" id="price" name="price" value= product ? product.price : '' required placeholder="Nhập giá")
+              .row
+                .col-md-6.mb-3
+                  label.form-label.fw-bold.text-muted(for="quantity") Số lượng
+                  input.form-control(type="number" id="quantity" name="quantity" value= product ? product.quantity : '' required placeholder="Nhập số lượng")
+                .col-md-6.mb-3
+                  label.form-label.fw-bold.text-muted(for="categoryId") Danh mục
+                  select.form-control(id="categoryId" name="categoryId" required)
+                    option(value="") Chọn danh mục
+                    each category in categories
+                      option(value=category._id selected= product && product.categoryId && product.categoryId.toString() === category._id.toString())= category.name
+              .mb-3
+                label.form-label.fw-bold.text-muted(for="description") Mô tả
+                textarea.form-control(id="description" name="description" rows="4" placeholder="Nhập mô tả sản phẩm")= product ? product.description : ''
+              .mb-3
+                label.form-label.fw-bold.text-muted Ảnh sản phẩm (tối đa 5 ảnh)
+                input.form-control(type="file" name="images" accept="image/*" multiple)
+                if product && product.images && product.images.length > 0
+                  p.mt-2.fw-bold.text-muted Ảnh hiện tại:
+                  .row.mt-2
+                    each image in product.images
+                      .col-md-2.mb-2
+                        img.img-thumbnail(src=image alt="Product image" style="width: 100px; height: 100px; object-fit: cover; transition: transform 0.3s ease;")
+                        style.
+                          .img-thumbnail:hover {
+                            transform: scale(1.1);
+                          }
+              button.btn.btn-primary.w-100.mt-3(type="submit" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;")= product ? 'Cập nhật' : 'Thêm sản phẩm'
+                |  
+                i.bi.bi-check-circle-fill
+              a.btn.btn-outline-secondary.w-100.mt-2(href="/admin/products" style="transition: all 0.3s ease;") Quay lại
+            style.
+              .btn-primary:hover {
+                background-color: #ff6384 !important;
+                border-color: #ff6384 !important;
+                transform: scale(1.02);
+              }
+              .btn-outline-secondary:hover {
+                background-color: #f8f9fa;
+                transform: scale(1.02);
+              }
+              .card {
+                border-radius: 15px;
+                background: linear-gradient(145deg, #ffffff, #f0f0f0);
+              }

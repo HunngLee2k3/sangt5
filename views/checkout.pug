@@ -2,60 +2,89 @@ extends layout
 
 block content
   .container.mt-5
-    h2.text-center= title
+    h2.text-center.mb-4.text-primary= title
     if error
-      .alert.alert-danger= error
-
-    // Hiển thị giỏ hàng
+      .alert.alert-danger.alert-dismissible.fade.show(role="alert")
+        | #{error}
+        button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
     if cart && cart.items && cart.items.length > 0
-      table.table.table-bordered
-        thead
-          tr
-            th Sản phẩm
-            th Giá
-            th Số lượng
-            th Tổng cộng
-        tbody
-          each item in cart.items
-            tr
-              td
-                if item.productId
-                  a(href=`/products/${item.productId.slug}`)= item.productId.name
+      .row
+        .col-md-6
+          h4.mb-3.text-muted Sản phẩm trong giỏ hàng
+          .card.shadow-sm.border-0
+            .card-body
+              .table-responsive
+                table.table.table-bordered
+                  thead
+                    tr
+                      th Sản phẩm
+                      th Giá
+                      th Số lượng
+                      th Tổng cộng
+                  tbody
+                    each item in cart.items
+                      tr
+                        td
+                          if item.productId
+                            a.text-primary(href=`/products/${item.productId.slug}` style="text-decoration: none;")= item.productId.name
+                          else
+                            span.text-muted Sản phẩm không tồn tại
+                        td
+                          if item.productId && item.productId.price
+                            | #{item.productId.price} VND
+                          else
+                            span.text-muted Không có giá
+                        td= item.quantity
+                        td
+                          if item.productId && item.productId.price
+                            | #{item.productId.price * item.quantity} VND
+                          else
+                            span.text-muted Không có giá
+              .text-end
+                h4
+                  strong Tổng cộng: 
+                  | #{total} VND
+        .col-md-6
+          h4.mb-3.text-muted Thông tin thanh toán
+          .card.shadow-sm.border-0
+            .card-body
+              form(action="/cart/checkout" method="POST")
+                .mb-3
+                  label.form-label.fw-bold.text-muted(for="addressId") Chọn địa chỉ giao hàng
+                  if addresses && addresses.length > 0
+                    select#addressId.form-select(name="addressId" required)
+                      option(value="") -- Chọn một địa chỉ --
+                      each addr in addresses
+                        option(value=addr._id selected=addr.isDefault)= addr.address
+                  else
+                    .alert.alert-warning.text-center Bạn chưa có địa chỉ nào được lưu.
+                    a.btn.btn-primary.mt-2(href="/addresses" style="background-color: #ff85a2; border-color: #ff85a2;") Thêm địa chỉ
+                .mb-3
+                  label.form-label.fw-bold.text-muted(for="deliveryDate") Ngày giao hàng
+                  input#deliveryDate.form-control(type="date" name="deliveryDate" required)
+                if addresses && addresses.length > 0 && cart && cart.items && cart.items.length > 0
+                  button.btn.btn-primary.w-100(type="submit" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Đặt hàng
+                    |  
+                    i.bi.bi-cart-check-fill
                 else
-                  | Sản phẩm không tồn tại
-              td
-                if item.productId && item.productId.price
-                  | #{item.productId.price} VND
-                else
-                  | Không có giá
-              td= item.quantity
-              td
-                if item.productId && item.productId.price
-                  | #{item.productId.price * item.quantity} VND
-                else
-                  | Không có giá
-      .text-right
-        h4
-          strong Tổng cộng: 
-          | #{total} VND
+                  button.btn.btn-primary.w-100(type="submit" disabled style="background-color: #ff85a2; border-color: #ff85a2;") Đặt hàng
     else
-      p.text-center Giỏ hàng của bạn đang trống.
-      a.btn.btn-primary.mt-3(href="/products") Tiếp tục mua sắm
+      .alert.alert-info.text-center Giỏ hàng của bạn đang trống.
+      a.btn.btn-primary.mt-3(href="/products" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Tiếp tục mua sắm
 
-    // Form chọn địa chỉ (luôn hiển thị)
-    form(action="/cart/checkout", method="POST")
-      .mb-3.mt-4
-        label.form-label(for="addressId") Chọn địa chỉ giao hàng
-        if addresses && addresses.length > 0
-          select#addressId.form-select(name="addressId", required)
-            option(value="") -- Chọn một địa chỉ --
-            each addr in addresses
-              option(value=addr._id, selected=addr.isDefault)= addr.address
-        else
-          p.text-center Bạn chưa có địa chỉ nào được lưu.
-          a.btn.btn-primary(href="/addresses") Thêm địa chỉ
-      if addresses && addresses.length > 0 && cart && cart.items && cart.items.length > 0
-        button.btn.btn-primary(type="submit") Đặt hàng
-      else
-        button.btn.btn-primary(type="submit", disabled) Đặt hàng
-    a.btn.btn-secondary.mt-3(href="/cart/view") Quay lại giỏ hàng
+    a.btn.btn-outline-secondary.mt-3(href="/cart/view" style="transition: all 0.3s ease;") Quay lại giỏ hàng
+
+  style.
+    .btn-primary:hover {
+      background-color: #ff6384 !important;
+      border-color: #ff6384 !important;
+      transform: scale(1.05);
+    }
+    .btn-outline-secondary:hover {
+      background-color: #f8f9fa;
+      transform: scale(1.02);
+    }
+    .card {
+      border-radius: 15px;
+      background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    }

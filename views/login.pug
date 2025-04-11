@@ -1,23 +1,43 @@
 extends layout
 
 block content
-  .row.justify-content-center
-    .col-md-6
-      h2.text-center.mt-5 Đăng nhập
-      if message
-        p.text-success.text-center= message
-      if error
-        p.text-danger.text-center= error
-      form(action="/auth/login" method="POST")
-        .mb-3
-          label.form-label(for="username") Tên người dùng
-          input.form-control(type="text" id="username" name="username" required)
-        .mb-3
-          label.form-label(for="password") Mật khẩu
-          input.form-control(type="password" id="password" name="password" required)
-        .mb-3
-          a(href="/auth/forgotpassword") Quên mật khẩu?
-        button.btn.btn-primary.w-100(type="submit") Đăng nhập
-      p.text-center.mt-3
-        | Chưa có tài khoản? 
-        a(href="/auth/signup") Đăng ký
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-6
+        .card.shadow-sm.border-0
+          .card-body
+            h2.text-center.mb-4.text-primary Đăng nhập
+            if message
+              .alert.alert-success.alert-dismissible.fade.show(role="alert")
+                | #{message}
+                button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
+            if error
+              .alert.alert-danger.alert-dismissible.fade.show(role="alert")
+                | #{error}
+                button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
+            form(action="/auth/login" method="POST")
+              .mb-3
+                label.form-label.fw-bold.text-muted(for="username") Tên người dùng
+                input.form-control(type="text" id="username" name="username" required placeholder="Nhập tên người dùng")
+              .mb-3
+                label.form-label.fw-bold.text-muted(for="password") Mật khẩu
+                input.form-control(type="password" id="password" name="password" required placeholder="Nhập mật khẩu")
+              .mb-3
+                a.text-primary(href="/auth/forgotpassword" style="text-decoration: none;") Quên mật khẩu?
+              button.btn.btn-primary.w-100(type="submit" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Đăng nhập
+                |  
+                i.bi.bi-box-arrow-in-right
+            p.text-center.mt-3
+              | Chưa có tài khoản? 
+              a.text-primary(href="/auth/signup" style="text-decoration: none;") Đăng ký
+
+  style.
+    .btn-primary:hover {
+      background-color: #ff6384 !important;
+      border-color: #ff6384 !important;
+      transform: scale(1.05);
+    }
+    .card {
+      border-radius: 15px;
+      background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    }

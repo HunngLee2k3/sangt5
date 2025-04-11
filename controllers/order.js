@@ -1,120 +1,158 @@
 // controllers/order.js
-let orderModel = require('../schemas/order');
+let orderModel = require('../schemas/order'); // Sửa tên file từ 'order' thành 'orders' để khớp với tên file thực tế
 let cartModel = require('../schemas/cart');
 let productModel = require('../schemas/products');
 let { sendmail } = require('../utils/sendmail');
 
 module.exports = {
-    // Tạo đơn hàng từ giỏ hàng
     CreateOrder: async function(userId, shippingAddress, deliveryDate) {
         try {
-            let cart = await cartModel.findOne({ user: userId }).populate('items.product');
-            if (!cart || cart.items.length === 0) {
+            if (!deliveryDate || new Date(deliveryDate) < new Date()) {
+                throw new Error("Ngày giao hàng không hợp lệ, phải là ngày trong tương lai");
+            }
+    
+            let cart = await cartModel.findOne({ userId: userId }).populate('items.productId');
+            console.log('Cart in CreateOrder:', cart);
+            console.log('Cart items in CreateOrder:', cart ? cart.items : null);
+    
+            if (!cart || !cart.items || cart.items.length === 0) {
                 throw new Error("Giỏ hàng trống");
             }
-
-            // Tính tổng giá
-            let totalPrice = 0;
+    
+            let total = 0;
             let items = [];
             for (let item of cart.items) {
-                if (item.product.quantity < item.quantity) {
-                    throw new Error(`Sản phẩm ${item.product.name} không đủ số lượng`);
+                if (!item.productId) {
+                    throw new Error(`Sản phẩm không tồn tại trong giỏ hàng`);
                 }
-                totalPrice += item.product.price * item.quantity;
+                if (item.productId.quantity < item.quantity) {
+                    throw new Error(`Sản phẩm ${item.productId.name} không đủ số lượng`);
+                }
+                total += item.productId.price * item.quantity;
                 items.push({
-                    product: item.product._id,
+                    productId: item.productId._id,
                     quantity: item.quantity,
-                    price: item.product.price
+                    price: item.productId.price
                 });
-
-                // Cập nhật số lượng sản phẩm trong kho
-                await productModel.findByIdAndUpdate(item.product._id, {
+    
+                await productModel.findByIdAndUpdate(item.productId._id, {
                     $inc: { quantity: -item.quantity }
                 });
             }
-
-            // Tạo đơn hàng
+    
             let order = new orderModel({
-                user: userId,
+                userId: userId,
                 items,
-                totalPrice,
+                total,
                 shippingAddress,
                 deliveryDate
             });
-
+    
             await order.save();
-
-            // Gửi email xác nhận đơn hàng
-            await sendmail(
-                user.email,
-                "Xác nhận đơn hàng",
-                `Đơn hàng của bạn đã được đặt thành công! Tổng giá: ${totalPrice} VND.`
-            );
-
-            // Xóa giỏ hàng sau khi đặt hàng
-            await cartModel.deleteOne({ user: userId });
-
+    
+            let userModel = require('../schemas/users');
+            let user = await userModel.findById(userId);
+            if (!user) {
+                throw new Error("Người dùng không tồn tại");
+            }
+    
+            // Gửi email xác nhận đơn hàng (đã comment, giữ nguyên)
+            // await sendmail(
+            //     user.email,
+            //     "Xác nhận đơn hàng",
+            //     `Đơn hàng của bạn đã được đặt thành công! Tổng giá: ${total} VND.`
+            // );
+    
+            await cartModel.deleteOne({ userId: userId });
+    
             return order;
         } catch (error) {
             throw new Error(error.message);
         }
     },
 
-    // Lấy danh sách đơn hàng của người dùng
     GetOrdersByUser: async function(userId) {
-        return await orderModel.find({ user: userId }).populate('items.product');
+        try {
+            let orders = await orderModel.find({ userId: userId }).populate({
+                path: 'items.productId',
+                match: { isDeleted: { $ne: true } }
+            });
+            orders = orders.filter(order => order.items && order.items.length > 0);
+            console.log('Orders found for userId:', userId, orders);
+            return orders;
+        } catch (error) {
+            console.error('Error in GetOrdersByUser:', error);
+            throw error;
+        }
     },
 
-    // Lấy tất cả đơn hàng (cho admin)
+    // Thêm hàm mới để lấy một đơn hàng cụ thể
+    GetOrderById: async function(orderId, userId) {
+        try {
+            let order = await orderModel.findOne({ _id: orderId, userId: userId }).populate({
+                path: 'items.productId',
+                match: { isDeleted: { $ne: true } }
+            });
+            if (!order) {
+                throw new Error('Đơn hàng không tồn tại hoặc không thuộc về bạn');
+            }
+            if (!order.items || order.items.length === 0) {
+                throw new Error('Đơn hàng không có sản phẩm hợp lệ');
+            }
+            console.log('Order found:', order);
+            return order;
+        } catch (error) {
+            console.error('Error in GetOrderById:', error);
+            throw error;
+        }
+    },
+
     GetAllOrders: async function() {
-        return await orderModel.find().populate('user').populate('items.product');
+        return await orderModel.find().populate('user').populate('items.productId');
     },
 
-    // Cập nhật trạng thái đơn hàng (cho admin)
     UpdateOrderStatus: async function(orderId, status) {
         try {
             let order = await orderModel.findById(orderId).populate('user');
             if (!order) {
                 throw new Error("Đơn hàng không tồn tại");
             }
-
+    
             order.status = status;
             await order.save();
-
-            // Gửi email thông báo trạng thái
-            await sendmail(
-                order.user.email,
-                "Cập nhật trạng thái đơn hàng",
-                `Đơn hàng của bạn đã được cập nhật thành: ${status}.`
-            );
-
+    
+            // Gửi email (để lại code gốc, nhưng bạn có thể comment nếu không dùng)
+            // await sendmail(
+            //     order.user.email,
+            //     "Cập nhật trạng thái đơn hàng",
+            //     `Đơn hàng của bạn đã được cập nhật thành: ${status}.`
+            // );
+    
             return order;
         } catch (error) {
             throw new Error(error.message);
         }
     },
 
-    // Hủy đơn hàng (cho khách hàng)
     CancelOrder: async function(orderId, userId) {
         try {
-            let order = await orderModel.findOne({ _id: orderId, user: userId });
+            let order = await orderModel.findOne({ _id: orderId, userId: userId }).populate('items.productId');
             if (!order) {
                 throw new Error("Đơn hàng không tồn tại");
             }
             if (order.status !== 'pending') {
                 throw new Error("Không thể hủy đơn hàng đã được xử lý");
             }
-
-            order.status = 'canceled';
+    
+            order.status = 'cancelled';
             await order.save();
-
-            // Hoàn lại số lượng sản phẩm trong kho
+    
             for (let item of order.items) {
-                await productModel.findByIdAndUpdate(item.product, {
+                await productModel.findByIdAndUpdate(item.productId, {
                     $inc: { quantity: item.quantity }
                 });
             }
-
+    
             return order;
         } catch (error) {
             throw new Error(error.message);

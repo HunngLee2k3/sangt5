@@ -2,47 +2,77 @@ extends layout
 
 block content
   .container.mt-5
-    h2.text-center= title
+    h2.text-center.mb-4.text-primary= title
     if error
-      .alert.alert-danger= error
+      .alert.alert-danger.alert-dismissible.fade.show(role="alert")
+        | #{error}
+        button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
 
     // Form thêm địa chỉ
-    h4.mt-4 Thêm địa chỉ mới
-    form(action="/addresses/add", method="POST")
-      .mb-3
-        label.form-label(for="address") Địa chỉ
-        textarea#address.form-control(name="address", rows="3", required)
-      button.btn.btn-primary(type="submit") Thêm địa chỉ
+    .card.shadow-sm.border-0.mb-4
+      .card-body
+        h4.mb-3.text-muted Thêm địa chỉ mới
+        form(action="/addresses/add" method="POST")
+          .mb-3
+            label.form-label.fw-bold.text-muted(for="address") Địa chỉ
+            textarea#address.form-control(name="address" rows="3" required placeholder="Nhập địa chỉ của bạn")
+          button.btn.btn-primary.w-100(type="submit" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Thêm địa chỉ
+            |  
+            i.bi.bi-plus-circle-fill
 
     // Danh sách địa chỉ
-    h4.mt-5 Địa chỉ của bạn
+    h4.mb-3.text-muted Địa chỉ của bạn
     if addresses && addresses.length > 0
       each addr in addresses
-        .card.mb-3
+        .card.shadow-sm.border-0.mb-3
           .card-body
-            p= addr.address
-            p
-              strong Mặc định: 
-              | #{addr.isDefault ? 'Có' : 'Không'}
-            p
-              strong Ngày tạo: 
-              | #{addr.createdAt.toLocaleString()}
-            .d-flex.justify-content-between
-              // Form cập nhật địa chỉ
-              form(action=`/addresses/update/${addr._id}`, method="POST")
-                .mb-3
-                  label.form-label(for=`address-${addr._id}`) Cập nhật địa chỉ
-                  textarea.form-control(name="address", id=`address-${addr._id}`, rows="2", required)= addr.address
-                .mb-3.form-check
-                  input.form-check-input(type="checkbox", name="isDefault", id=`isDefault-${addr._id}`, checked=addr.isDefault)
-                  label.form-check-label(for=`isDefault-${addr._id}`) Đặt làm mặc định
-                button.btn.btn-warning(type="submit") Cập nhật
-              // Form xóa địa chỉ
-              form(action=`/addresses/delete/${addr._id}`, method="POST")
-                button.btn.btn-danger(type="submit", onclick="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này không?')") Xóa
+            .row.align-items-center
+              .col-md-6
+                p.mb-1
+                  strong Địa chỉ: 
+                  | #{addr.address}
+                p.mb-1
+                  strong Mặc định: 
+                  span.badge.bg-success.text-white= addr.isDefault ? 'Có' : 'Không'
+                p.mb-0
+                  strong Ngày tạo: 
+                  | #{addr.createdAt.toLocaleString()}
+              .col-md-6.text-end
+                // Form cập nhật địa chỉ
+                form(action=`/addresses/update/${addr._id}` method="POST" class="d-inline-block me-2")
+                  .mb-3
+                    label.form-label.fw-bold.text-muted(for=`address-${addr._id}`) Cập nhật địa chỉ
+                    textarea.form-control(name="address" id=`address-${addr._id}` rows="2" required)= addr.address
+                  .mb-3.form-check
+                    input.form-check-input(type="checkbox" name="isDefault" id=`isDefault-${addr._id}` checked=addr.isDefault)
+                    label.form-check-label(for=`isDefault-${addr._id}`) Đặt làm mặc định
+                  button.btn.btn-warning(type="submit" style="transition: all 0.3s ease;") Cập nhật
+                // Form xóa địa chỉ
+                form(action=`/addresses/delete/${addr._id}` method="POST" class="d-inline-block")
+                  button.btn.btn-danger(type="submit" onclick="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này không?')" style="transition: all 0.3s ease;") Xóa
     else
-      p.text-center Bạn chưa có địa chỉ nào.
-      a.btn.btn-primary.mt-3(href="/products") Tiếp tục mua sắm
+      .alert.alert-info.text-center Bạn chưa có địa chỉ nào.
+      a.btn.btn-primary.mt-3(href="/products" style="background-color: #ff85a2; border-color: #ff85a2;") Tiếp tục mua sắm
 
-    // Nút quay lại
-    a.btn.btn-secondary.mt-3(href="/cart/view") Quay lại giỏ hàng
+    a.btn.btn-outline-secondary.mt-3(href="/cart/view" style="transition: all 0.3s ease;") Quay lại giỏ hàng
+
+  style.
+    .btn-primary:hover, .btn-warning:hover, .btn-danger:hover {
+      transform: scale(1.05);
+    }
+    .btn-primary {
+      background-color: #ff85a2 !important;
+      border-color: #ff85a2 !important;
+    }
+    .btn-primary:hover {
+      background-color: #ff6384 !important;
+      border-color: #ff6384 !important;
+    }
+    .btn-outline-secondary:hover {
+      background-color: #f8f9fa;
+      transform: scale(1.02);
+    }
+    .card {
+      border-radius: 15px;
+      background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    }

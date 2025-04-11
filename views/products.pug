@@ -2,51 +2,53 @@ extends layout
 
 block content
   .container.mt-5
-    h2.text-center= title
-    #cart-message.alert.alert-success.d-none(role="alert") Đã thêm sản phẩm vào giỏ hàng!
+    h2.text-center.mb-4.text-primary= title
+    #cart-message.alert.alert-success.alert-dismissible.fade.show.d-none(role="alert")
+      | Đã thêm sản phẩm vào giỏ hàng!
+      button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
     .row
       if products && products.length > 0
         each product in products
           .col-md-4.mb-4
-            .card
+            .card.shadow-sm.border-0.h-100
               if product.images && product.images.length > 0
-                img.card-img-top(src=product.images[0], alt=product.name)
+                img.card-img-top(src=product.images[0] alt=product.name style="height: 200px; object-fit: cover; border-top-left-radius: 10px; border-top-right-radius: 10px;")
               else
-                img.card-img-top(src="https://via.placeholder.com/300x200?text=No+Image", alt="Không có hình ảnh")
+                img.card-img-top(src="https://via.placeholder.com/300x200?text=No+Image" alt="Không có hình ảnh" style="height: 200px; object-fit: cover; border-top-left-radius: 10px; border-top-right-radius: 10px;")
               .card-body
-                h5.card-title= product.name
-                p.card-text
+                h5.card-title.text-primary= product.name
+                p.card-text.text-muted
                   strong Giá: 
                   if product.price
-                    | #{product.price} VND
+                    span.text-danger.fw-bold #{product.price} VND
                   else
                     | Không có giá
-                p.card-text
+                p.card-text.text-muted
                   strong Số lượng trong kho: 
                   if product.quantity !== undefined
                     | #{product.quantity}
                   else
-                    | Không có số lượng
-                p.card-text
+                    | Hết hàng
+                p.card-text.text-muted
                   strong Danh mục: 
                   if product.category && product.category.name
                     | #{product.category.name}
                   else
                     | Không có danh mục
-                p.card-text
-                  strong Mô tả: 
-                  if product.description
-                    | #{product.description}
-                  else
-                    | Không có mô tả
-                .d-flex.justify-content-between.mt-3
-                  a.btn.btn-primary(href=`/products/${product.slug}`) Xem chi tiết
+                
+              .card-footer.bg-transparent.border-0
+                .d-flex.justify-content-between
+                  a.btn.btn-primary.btn-sm(href=`/products/${product.slug}` style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Xem chi tiết
                   if isAuthenticated
-                    button.btn.btn-success(onclick=`addToCart('${product._id}')`) Thêm vào giỏ
+                    button.btn.btn-success.btn-sm(onclick=`addToCart('${product._id}')` style="transition: all 0.3s ease;") 
+                      i.fas.fa-cart-plus.me-2
+                      | Thêm vào giỏ
                   else
-                    a.btn.btn-success(href="/auth/login") Đăng nhập để thêm vào giỏ
+                    a.btn.btn-success.btn-sm(href="/auth/login" style="transition: all 0.3s ease;") Đăng nhập để thêm
       else
-        p.text-center Không có sản phẩm nào.
+        .text-center.text-muted
+          i.fas.fa-box-open.fa-3x.mb-3
+          p Không có sản phẩm nào.
 
   script.
     async function addToCart(productId) {

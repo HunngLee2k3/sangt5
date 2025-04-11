@@ -10,19 +10,35 @@ let constants = require('../utils/constants');
 router.get('/create', check_authentication, async function(req, res, next) {
     res.render('checkout', { title: 'Checkout' });
 });
-/* GET orders page */
-router.get('/', async function(req, res, next) {
+
+// Hiển thị giao diện lịch sử đơn hàng
+router.get('/', check_authentication, async function(req, res, next) {
     try {
         let user = req.user;
         if (!user) {
             return res.redirect('/auth/login');
         }
-        let orders = await orderModel.find({ userId: user._id }).populate('items.productId');
+        let orders = await orderController.GetOrdersByUser(user._id);
         res.render('orders', { title: 'Đơn hàng của bạn', orders });
     } catch (error) {
         next(error);
     }
 });
+
+// Hiển thị giao diện lịch sử đơn hàng (giữ lại /view để tương thích)
+router.get('/view', check_authentication, async function(req, res, next) {
+    try {
+        let user = req.user;
+        if (!user) {
+            return res.redirect('/auth/login');
+        }
+        let orders = await orderController.GetOrdersByUser(req.user._id);
+        res.render('orders', { title: 'Đơn hàng của bạn', orders });
+    } catch (error) {
+        next(error);
+    }
+});
+
 /* GET order detail page */
 router.get('/:id', async function(req, res, next) {
     try {
@@ -30,41 +46,20 @@ router.get('/:id', async function(req, res, next) {
         if (!user) {
             return res.redirect('/auth/login');
         }
-        let order = await orderModel.findOne({ _id: req.params.id, userId: user._id }).populate('items.productId');
-        if (!order) {
-            throw new Error("Đơn hàng không tồn tại hoặc không thuộc về bạn");
-        }
+        let order = await orderController.GetOrderById(req.params.id, user._id);
         res.render('order-detail', { title: 'Chi tiết đơn hàng', order });
     } catch (error) {
-        next(error);
+        console.error('Error in GET /orders/:id:', error);
+        res.render('order-detail', { title: 'Chi tiết đơn hàng', error: error.message });
     }
 });
+
 // Tạo đơn hàng
 router.post('/create', check_authentication, async function(req, res, next) {
     try {
         let { shippingAddress, deliveryDate } = req.body;
         let order = await orderController.CreateOrder(req.user._id, shippingAddress, new Date(deliveryDate));
-        res.redirect('/orders/view'); // Chuyển hướng đến lịch sử đơn hàng
-    } catch (error) {
-        next(error);
-    }
-});
-
-// // Lấy danh sách đơn hàng của người dùng (API)
-// router.get('/', check_authentication, async function(req, res, next) {
-//     try {
-//         let orders = await orderController.GetOrdersByUser(req.user._id);
-//         CreateSuccessRes(res, orders, 200);
-//     } catch (error) {
-//         next(error);
-//     }
-// });
-
-// Hiển thị giao diện lịch sử đơn hàng
-router.get('/view', check_authentication, async function(req, res, next) {
-    try {
-        let orders = await orderController.GetOrdersByUser(req.user._id);
-        res.render('orders', { title: 'Your Orders', orders });
+        res.redirect('/orders/view');
     } catch (error) {
         next(error);
     }
@@ -92,12 +87,19 @@ router.put('/:orderId/status', check_authentication, check_authorization(constan
 });
 
 // Hủy đơn hàng (cho khách hàng)
-router.put('/:orderId/cancel', check_authentication, async function(req, res, next) {
+// routes/orders.js
+router.post('/:orderId/cancel', check_authentication, async function(req, res, next) {
     try {
-        let order = await orderController.CancelOrder(req.params.orderId, req.user._id);
-        CreateSuccessRes(res, order, 200);
+        let user = req.user;
+        if (!user) {
+            return res.redirect('/auth/login');
+        }
+        await orderController.CancelOrder(req.params.orderId, user._id);
+        res.redirect('/orders'); // Làm mới trang danh sách đơn hàng
     } catch (error) {
-        next(error);
+        console.error('Error in POST /orders/:orderId/cancel:', error);
+        let orders = await orderController.GetOrdersByUser(user._id);
+        res.render('orders', { title: 'Đơn hàng của bạn', orders, error: error.message });
     }
 });
 

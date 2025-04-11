@@ -1,0 +1,67 @@
+extends layout
+
+block content
+  .container.mt-5
+    h2.text-center.mb-4.text-primary= title
+    p.text-center.text-muted Quản trị viên: #{user.username}
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show(role="alert")
+        | #{error}
+        button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
+    a.btn.btn-success.mb-4(href="/admin/categories/add" style="background-color: #28a745; border-color: #28a745; transition: all 0.3s ease;") Thêm danh mục
+      |  
+      i.bi.bi-plus-circle-fill
+    if categories && categories.length > 0
+      .row
+        each category in categories
+          .col-md-4.mb-4
+            .card.shadow-sm.border-0.h-100
+              .card-body
+                h5.card-title.text-primary= category.name
+                p.card-text.text-muted= category.description || 'Không có mô tả'
+              .card-footer.bg-transparent.border-0
+                a.btn.btn-warning.btn-sm.me-2(href=`/admin/categories/edit/${category._id}` style="transition: all 0.3s ease;") Sửa
+                button.btn.btn-danger.btn-sm.delete-category(data-id=category._id onclick=`deleteCategory('${category._id}')` style="transition: all 0.3s ease;") Xóa
+    else
+      .alert.alert-info.text-center Không có danh mục nào.
+
+  script.
+    async function deleteCategory(categoryId) {
+      if (confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
+        try {
+          const response = await fetch(`/admin/categories/delete/${categoryId}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('Xóa danh mục thành công');
+            window.location.reload();
+          } else {
+            alert('Lỗi: ' + result.message);
+          }
+        } catch (error) {
+          alert('Lỗi: ' + error.message);
+        }
+      }
+    }
+
+  style.
+    .btn-success:hover {
+      background-color: #218838 !important;
+      border-color: #218838 !important;
+      transform: scale(1.05);
+    }
+    .btn-warning:hover, .btn-danger:hover {
+      transform: scale(1.05);
+    }
+    .card {
+      border-radius: 15px;
+      background: linear-gradient(145deg, #ffffff, #f0f0f0);
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }

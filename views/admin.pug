@@ -1,23 +1,45 @@
 extends layout
 
 block content
-  h2.text-center.mt-5 Admin Dashboard
-  h3 Quản lý người dùng
-  table.table.table-bordered
-    thead
-      tr
-        th Username
-        th Email
-        th Role
-        th Hành động
-    tbody
-      each user in users
-        tr
-          td= user.username
-          td= user.email
-          td= user.role
-          td
-            button.btn.btn-danger(onclick=`deleteUser('${user._id}')`) Xóa
+  .container.mt-5
+    h2.text-center.mb-4.text-primary= title
+    p.text-center.text-muted Chào mừng, #{user.username}! Bạn đang ở trang quản trị.
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show(role="alert")
+        | #{error}
+        button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
+    .row.mt-4
+      .col-md-4.mb-4
+        a.btn.btn-primary.btn-block(href="/orders/all" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Xem tất cả đơn hàng
+          |  
+          i.bi.bi-list-ul
+      .col-md-4.mb-4
+        a.btn.btn-primary.btn-block(href="/admin/products" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Quản lý sản phẩm
+          |  
+          i.bi.bi-box-seam
+      .col-md-4.mb-4
+        a.btn.btn-primary.btn-block(href="/admin/categories" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Quản lý danh mục
+          |  
+          i.bi.bi-tags
+    h3.mt-5.text-muted Danh sách người dùng
+    if users && users.length > 0
+      .row
+        each user in users
+          .col-md-4.mb-4
+            .card.shadow-sm.border-0
+              .card-body
+                h5.card-title.text-primary= user.username
+                p.card-text.text-muted
+                  strong Email: 
+                  | #{user.email}
+                p.card-text.text-muted
+                  strong Ngày tạo: 
+                  | #{user.createdAt.toLocaleDateString('vi-VN')}
+              .card-footer.bg-transparent.border-0
+                a.btn.btn-info.btn-sm.me-2(href=`/admin/users/${user._id}/orders` style="transition: all 0.3s ease;") Xem đơn hàng
+                button.btn.btn-danger.btn-sm.delete-user(data-id=user._id onclick=`deleteUser('${user._id}')` style="transition: all 0.3s ease;") Xóa
+    else
+      .alert.alert-info.text-center Không có người dùng nào.
 
   script.
     async function deleteUser(userId) {
@@ -31,7 +53,7 @@ block content
           });
           const result = await response.json();
           if (result.success) {
-            alert('Xóa người dùng thành công!');
+            alert('Xóa người dùng thành công');
             window.location.reload();
           } else {
             alert('Lỗi: ' + result.message);
@@ -40,4 +62,22 @@ block content
           alert('Lỗi: ' + error.message);
         }
       }
+    }
+
+  style.
+    .btn-primary:hover {
+      background-color: #ff6384 !important;
+      border-color: #ff6384 !important;
+      transform: scale(1.05);
+    }
+    .btn-info:hover, .btn-danger:hover {
+      transform: scale(1.05);
+    }
+    .card {
+      border-radius: 15px;
+      background: linear-gradient(145deg, #ffffff, #f0f0f0);
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
     }

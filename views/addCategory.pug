@@ -1,13 +1,38 @@
 extends layout
 
 block content
-  h1 Add New Category
-  form(action="/categories" method="POST")
-    div
-      label(for="name") Name:
-      input(type="text" name="name" required)
-    div
-      label(for="description") Description:
-      textarea(name="description")
-    div
-      button(type="submit") Add Category
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-6
+        .card.shadow-sm.border-0
+          .card-body
+            h2.text-center.mb-4.text-primary= title
+            if error
+              .alert.alert-danger.alert-dismissible.fade.show(role="alert")
+                | #{error}
+                button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
+            form(action= category ? `/admin/categories/edit/${category._id}` : '/admin/categories/add' method="POST")
+              .mb-3
+                label.form-label.fw-bold.text-muted(for="name") Tên danh mục
+                input.form-control(type="text" id="name" name="name" value= category ? category.name : '' required placeholder="Nhập tên danh mục")
+              .mb-3
+                label.form-label.fw-bold.text-muted(for="description") Mô tả
+                textarea.form-control(id="description" name="description" rows="3" placeholder="Nhập mô tả danh mục")= category ? category.description : ''
+              button.btn.btn-primary.w-100.mt-3(type="submit" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;")= category ? 'Cập nhật' : 'Thêm danh mục'
+                |  
+                i.bi.bi-check-circle-fill
+              a.btn.btn-outline-secondary.w-100.mt-2(href="/admin/categories" style="transition: all 0.3s ease;") Quay lại
+            style.
+              .btn-primary:hover {
+                background-color: #ff6384 !important;
+                border-color: #ff6384 !important;
+                transform: scale(1.02);
+              }
+              .btn-outline-secondary:hover {
+                background-color: #f8f9fa;
+                transform: scale(1.02);
+              }
+              .card {
+                border-radius: 15px;
+                background: linear-gradient(145deg, #ffffff, #f0f0f0);
+              }

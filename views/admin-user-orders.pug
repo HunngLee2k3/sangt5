@@ -3,10 +3,12 @@ extends layout
 block content
   .container.mt-5
     h2.text-center.mb-4.text-primary= title
+    p.text-center.text-muted Quản trị viên: #{user.username}
     if error
       .alert.alert-danger.alert-dismissible.fade.show(role="alert")
         | #{error}
         button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
+    a.btn.btn-outline-secondary.mb-4(href="/admin" style="transition: all 0.3s ease;") Quay lại
     if orders && orders.length > 0
       .row
         each order in orders
@@ -27,25 +29,19 @@ block content
                   strong Trạng thái: 
                   span.badge(class=`bg-${order.status === 'pending' ? 'warning' : order.status === 'completed' ? 'success' : 'danger'}`)= order.status
               .card-footer.bg-transparent.border-0
-                a.btn.btn-primary.btn-sm.me-2(href=`/orders/${order._id}` style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Xem chi tiết
-                if order.status === 'pending'
-                  form(action=`/orders/${order._id}/cancel` method="POST" style="display:inline;")
-                    button.btn.btn-danger.btn-sm(type="submit" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')" style="transition: all 0.3s ease;") Hủy đơn hàng
+                a.btn.btn-primary.btn-sm(href=`/orders/${order._id}` style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Xem chi tiết
     else
-      .alert.alert-info.text-center Bạn chưa có đơn hàng nào.
-      a.btn.btn-primary.mt-3(href="/products" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Tiếp tục mua sắm
+      .alert.alert-info.text-center Người dùng này chưa có đơn hàng nào.
 
   style.
-    .btn-primary:hover, .btn-danger:hover {
-      transform: scale(1.05);
-    }
-    .btn-primary {
-      background-color: #ff85a2 !important;
-      border-color: #ff85a2 !important;
-    }
     .btn-primary:hover {
       background-color: #ff6384 !important;
       border-color: #ff6384 !important;
+      transform: scale(1.05);
+    }
+    .btn-outline-secondary:hover {
+      background-color: #f8f9fa;
+      transform: scale(1.02);
     }
     .card {
       border-radius: 15px;

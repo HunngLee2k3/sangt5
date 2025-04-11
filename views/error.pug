@@ -1,14 +1,29 @@
 extends layout
 
 block content
-  .container.mt-5
-    h1.text-center Lỗi
-    if message
-      p.text-center.text-danger= message
-    else
-      p.text-center.text-danger Đã xảy ra lỗi không xác định.
-    if error && error.status
-      p.text-center Mã lỗi: #{error.status}
-    if error && error.stack
-      pre.text-center= error.stack
-    a.btn.btn-primary.mt-3.d-block.mx-auto(href="/") Quay lại trang chủ
+  .container.mt-5.text-center
+    .card.shadow-sm.border-0
+      .card-body
+        h1.text-danger.mb-4 Lỗi
+        if message
+          p.text-danger= message
+        else
+          p.text-danger Đã xảy ra lỗi không xác định.
+        if error && error.status
+          p.text-muted Mã lỗi: #{error.status}
+        if error && error.stack
+          pre.text-muted= error.stack
+        a.btn.btn-primary.mt-3(href="/" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Quay lại trang chủ
+          |  
+          i.bi.bi-house-fill
+
+  style.
+    .btn-primary:hover {
+      background-color: #ff6384 !important;
+      border-color: #ff6384 !important;
+      transform: scale(1.05);
+    }
+    .card {
+      border-radius: 15px;
+      background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    }

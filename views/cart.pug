@@ -2,51 +2,132 @@ extends layout
 
 block content
   .container.mt-5
-    h2.text-center= title
-    #cart-message.alert.alert-success.d-none(role="alert") Đã cập nhật giỏ hàng!
+    h2.text-center.mb-4.text-primary= title
+    #cart-message.alert.alert-success.alert-dismissible.fade.show.d-none(role="alert")
+      | Đã cập nhật giỏ hàng!
+      button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
     if cart && cart.items && cart.items.length > 0
-      table.table.table-bordered
-        thead
-          tr
-            th Sản phẩm
-            th Giá
-            th Số lượng
-            th Tổng cộng
-            th Hành động
-        tbody
-          each item in cart.items
-            tr
-              td
-                if item.productId
-                  a(href=`/products/${item.productId.slug}`)= item.productId.name
-                else
-                  | Sản phẩm không tồn tại
-              td
-                if item.productId && item.productId.price
-                  | #{item.productId.price} VND
-                else
-                  | Không có giá
-              td
-                if item.productId
-                  input.form-control(type="number", min="1", value=item.quantity, data-product-id=item.productId._id, onchange="updateQuantity(this)")
-                else
-                  | N/A
-              td
-                if item.productId && item.productId.price
-                  | #{item.productId.price * item.quantity} VND
-                else
-                  | Không có giá
-              td
-                if item.productId
-                  button.btn.btn-danger(onclick=`removeFromCart('${item.productId._id}')`) Xóa
-                else
-                  button.btn.btn-danger(onclick=`removeFromCartByIndex(${cart.items.indexOf(item)})`) Xóa
-      .text-right
-        h4
-          strong Tổng cộng: 
-          span#cart-total
-            | #{cart.items.reduce((total, item) => total + (item.productId && item.productId.price ? item.productId.price * item.quantity : 0), 0)} VND
-        a.btn.btn-primary.mt-3(href="/cart/checkout") Tiến hành thanh toán
+      .row
+        .col-md-12
+          .table-responsive
+            table.table.table-bordered.table-hover
+              thead
+                tr
+                  th Sản phẩm
+                  th Giá
+                  th Số lượng
+                  th Tổng cộng
+                  th Hành động
+              tbody
+                each item in cart.items
+                  tr
+                    td
+                      if item.productId
+                        a.text-primary(href=`/products/${item.productId.slug}` style="text-decoration: none;")= item.productId.name
+                      else
+                        span.text-muted Sản phẩm không tồn tại
+                    td
+                      if item.productId && item.productId.price
+                        | #{item.productId.price} VND
+                      else
+                        span.text-muted Không có giá
+                    td
+                      if item.productId
+                        input.form-control(type="number" min="1" value=item.quantity data-item-id=item._id onchange=`updateQuantity('${item._id}', this.value)` style="width: 100px;")
+                      else
+                        span.text-muted N/A
+                    td
+                      if item.productId && item.productId.price
+                        | #{item.productId.price * item.quantity} VND
+                      else
+                        span.text-muted Không có giá
+                    td
+                      button.btn.btn-danger.btn-sm.remove-item(data-item-id=item._id onclick=`removeFromCart('${item._id}')` style="transition: all 0.3s ease;") Xóa
+          .text-end.mt-4
+            h4
+              strong Tổng cộng: 
+              span#cart-total
+                | #{cart.items.reduce((total, item) => total + (item.productId && item.productId.price ? item.productId.price * item.quantity : 0), 0)} VND
+            a.btn.btn-primary.mt-3(href="/cart/checkout" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Tiến hành thanh toán
+              |  
+              i.bi.bi-cart-check-fill
     else
-      p.text-center Giỏ hàng của bạn đang trống.
-      a.btn.btn-primary.mt-3(href="/products") Tiếp tục mua sắm
+      .alert.alert-info.text-center Giỏ hàng của bạn đang trống.
+      a.btn.btn-primary.mt-3(href="/products" style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Tiếp tục mua sắm
+
+  script.
+    async function removeFromCart(itemId) {
+      if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+        try {
+          const response = await fetch(`/cart/remove/${itemId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          if (!response.ok) {
+            if (response.status === 401) {
+              alert('Bạn cần đăng nhập để thực hiện chức năng này');
+              window.location.href = '/auth/login';
+              return;
+            }
+            const text = await response.text();
+            throw new Error(`Phản hồi không hợp lệ từ server: ${text}`);
+          }
+          const result = await response.json();
+          if (result.success) {
+            alert('Xóa sản phẩm thành công');
+            window.location.reload();
+          } else {
+            alert('Lỗi: ' + result.message);
+          }
+        } catch (error) {
+          alert('Lỗi khi xóa sản phẩm: ' + error.message);
+        }
+      }
+    }
+
+    async function updateQuantity(itemId, quantity) {
+      try {
+        const response = await fetch(`/cart/update/${itemId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ quantity })
+        });
+        if (!response.ok) {
+          if (response.status === 401) {
+            alert('Bạn cần đăng nhập để thực hiện chức năng này');
+            window.location.href = '/auth/login';
+            return;
+          }
+          const text = await response.text();
+          throw new Error(`Phản hồi không hợp lệ từ server: ${text}`);
+        }
+        const result = await response.json();
+        if (result.success) {
+          document.getElementById('cart-message').classList.remove('d-none');
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          alert('Lỗi: ' + result.message);
+        }
+      } catch (error) {
+        alert('Lỗi khi cập nhật số lượng: ' + error.message);
+      }
+    }
+
+  style.
+    .btn-primary:hover {
+      background-color: #ff6384 !important;
+      border-color: #ff6384 !important;
+      transform: scale(1.05);
+    }
+    .btn-danger:hover {
+      transform: scale(1.05);
+    }
+    .table-hover tbody tr:hover {
+      background-color: #f8f9fa;
+    }

@@ -1,22 +1,42 @@
-doctype html
 extends layout
 
 block content
-    h1 Category List
-
-    // Danh sách danh mục
-    table(border="1")
-      thead
-        tr
-          th Name
-          th Description
-          th Slug
-      tbody
+  .container.mt-5
+    h2.text-center.mb-4.text-primary Danh mục
+    if categories && categories.length > 0
+      .row
         each category in categories
-          tr
-            td= category.name
-            td= category.description
-            td= category.slug
+          .col-md-4.mb-4
+            .card.shadow-sm.border-0.h-100
+              .card-body
+                h5.card-title.text-primary= category.name
+                p.card-text.text-muted= category.description || 'Không có mô tả'
+                p.card-text.text-muted
+                  strong Slug: 
+                  | #{category.slug}
+              .card-footer.bg-transparent.border-0
+                a.btn.btn-primary.btn-sm(href=`/products?category=${category._id}` style="background-color: #ff85a2; border-color: #ff85a2; transition: all 0.3s ease;") Xem sản phẩm
+    else
+      .alert.alert-info.text-center Không có danh mục nào.
+    a.btn.btn-success.mt-3(href="/categories/add" style="background-color: #28a745; border-color: #28a745; transition: all 0.3s ease;") Thêm danh mục mới
 
-    // Nút thêm danh mục
-    a(href="/categories/add") Add New Category
+  style.
+    .btn-primary:hover, .btn-success:hover {
+      transform: scale(1.05);
+    }
+    .btn-primary {
+      background-color: #ff85a2 !important;
+      border-color: #ff85a2 !important;
+    }
+    .btn-primary:hover {
+      background-color: #ff6384 !important;
+      border-color: #ff6384 !important;
+    }
+    .card {
+      border-radius: 15px;
+      background: linear-gradient(145deg, #ffffff, #f0f0f0);
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
